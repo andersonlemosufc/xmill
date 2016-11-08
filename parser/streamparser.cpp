@@ -76,31 +76,31 @@ bool StreamParser::isEnd()
     return this->end;
 }
 
-int StreamParser::compress(char *compressed, char *data, long len)
+int StreamParser::compress(char **compressed, char *data, long len)
 {
     long nDestLen = EZ_COMPRESSMAXDESTLENGTH(len);
-    compressed = new char[nDestLen];
-    int nErr = ezcompress( reinterpret_cast<unsigned char*>(compressed), &nDestLen,
+    *compressed = new char[nDestLen];
+    int nErr = ezcompress( reinterpret_cast<unsigned char*>(*compressed), &nDestLen,
                            reinterpret_cast<unsigned char*>(data), len );
     if ( nErr == EZ_BUF_ERROR ) {
-      delete[] compressed;
-      compressed = new char[nDestLen]; // enough room now
-      nErr = ezcompress( reinterpret_cast<unsigned char*>(compressed), &nDestLen,
+      delete[] *compressed;
+      *compressed = new char[nDestLen]; // enough room now
+      nErr = ezcompress( reinterpret_cast<unsigned char*>(*compressed), &nDestLen,
                            reinterpret_cast<unsigned char*>(data), len );
     }
     return (int)(nDestLen);
 }
 
-int StreamParser::uncompress(char *uncompressed, char *data, long len)
+int StreamParser::uncompress(char **uncompressed, char *data, long len)
 {
     long nDestLen = EZ_UNCOMPRESSMAXDESTLENGTH(len);
-    uncompressed = new char[nDestLen];
-    int nErr = ezuncompress( reinterpret_cast<unsigned char*>(uncompressed), &nDestLen,
+    *uncompressed = new char[nDestLen];
+    int nErr = ezuncompress( reinterpret_cast<unsigned char*>(*uncompressed), &nDestLen,
                            reinterpret_cast<unsigned char*>(data), len );
     if ( nErr == EZ_BUF_ERROR ) {
-      delete[] uncompressed;
-      uncompressed = new char[nDestLen]; // enough room now
-      nErr = ezuncompress( reinterpret_cast<unsigned char*>(uncompressed), &nDestLen,
+      delete[] *uncompressed;
+      *uncompressed = new char[nDestLen]; // enough room now
+      nErr = ezuncompress( reinterpret_cast<unsigned char*>(*uncompressed), &nDestLen,
                            reinterpret_cast<unsigned char*>(data), len );
     }
     return (int)(nDestLen);
@@ -258,9 +258,9 @@ void StreamParser::compressContainers()
     char *aux = Util::convertIntToChar(patricia->getSize(), tAux);
     out->write(aux, tAux);
     for(Patricia<int>::iterator it = patricia->begin();it!=patricia->end();it++){
-        *out << *it << " ";
         aux = Util::convertIntToChar(*(+it), tAux);
         out->write(aux, tAux);
+        *out << *it << "\n";
     }
     aux = Util::convertIntToChar(containers->size(), tAux);
     out->write(aux, tAux);
@@ -268,28 +268,41 @@ void StreamParser::compressContainers()
     for(unordered_map<int,Container*>::iterator it = containers->begin(); it != containers->end(); ++it){
         Container *c = *(&it->second);
         char *buffer = c->getData();
-        long t = EZ_COMPRESSMAXDESTLENGTH(c->size);
-        char* compressed = new char[t];
-        compress(compressed, buffer, t);
-        aux = Util::convertIntToChar(int(t), tAux);
+        char* compressed;
+        int t = compress(&compressed, buffer, c->size);
+        aux = Util::convertIntToChar(t, tAux);
         out->write(aux, tAux);
         aux = Util::convertIntToChar(c->id, tAux);
         out->write(aux, tAux);
         out->write(compressed, t);
     }
+/*
+    for(Patricia<int>::iterator it = patricia->begin();it!=patricia->end();it++){
+        aux = Util::convertIntToChar(*(+it), tAux);
+        cout << *(+it) << " ";
+        cout << *it << "\n";
+    }
+
+    for(unordered_map<int,Container*>::iterator it = containers->begin(); it != containers->end(); ++it){
+
+        int id = *(&it->first);
+        Container *c = *(&it->second);
+
+        cout << id << " " << c->id << endl;
+    }
+*/
     out->flush();
 
-    /*delete containers;
+    containers->clear();
     delete patricia;
     delete structureContainer;
 
     this->patricia = new Patricia<int>();
-    this->containers = new unordered_map<int,Container*>;
     this->nextContainerID = ID_CONTAINER_STRUCTURE+1;
     this->nextTagId = TAG_MAP_CONTAINER_STRUCTURE+1;
     this->contLengthBuffer = 0;
     this->structureContainer = new Container(ID_CONTAINER_STRUCTURE, TAG_MAP_CONTAINER_STRUCTURE);
-    (*containers)[TAG_MAP_CONTAINER_STRUCTURE] = structureContainer;*/
+    (*containers)[TAG_MAP_CONTAINER_STRUCTURE] = structureContainer;
 
 }
 
