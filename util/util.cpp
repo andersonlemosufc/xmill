@@ -48,7 +48,7 @@ std::string Util::trim(QStringRef s)
 
 string Util::getOutputFilename(QString filename)
 {
-    int k=0;
+    int k = filename.lastIndexOf("/");
     for(int t=filename.length();k<t;k++){
         if(filename[k]=='.') break;
     }
@@ -57,7 +57,7 @@ string Util::getOutputFilename(QString filename)
 
 string Util::getDecompressedFilename(QString filename)
 {
-    int k=0;
+    int k = filename.lastIndexOf("/");
     for(int t=filename.length();k<t;k++){
         if(filename[k]=='.') break;
     }

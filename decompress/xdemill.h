@@ -18,10 +18,10 @@ typedef struct {
     int id;
     int type;
 
-    static int NORMAL           = 1;
-    static int START_DOCUMENT   = 2;
-    static int COMMENT          = 3;
-    static int DTD              = 4;
+    static const int NORMAL           = 1;
+    static const int START_DOCUMENT   = 2;
+    static const int COMMENT          = 3;
+    static const int DTD              = 4;
 } Tag;
 
 

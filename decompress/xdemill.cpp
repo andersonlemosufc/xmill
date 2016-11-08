@@ -61,7 +61,7 @@ void XDemill::decompress(QString filename)
         containers.erase(ID_CONTAINER_STRUCTURE);
 
         stack<Tag> tags;
-
+break;
         for(int k=0;k<structure->size;k++){
             int t = Util::nextInt(structure->data, &k);
             if(t==0){
@@ -81,9 +81,9 @@ void XDemill::decompress(QString filename)
             }
         }
 
-         /*//PATRICIA
+         //PATRICIA
 
-         for(unordered_map<int,char*>::iterator it = map.begin();
+         /*for(unordered_map<int,char*>::iterator it = map.begin();
             it!=map.end();++it){
 
             int id = *(&it->first);
@@ -100,8 +100,8 @@ void XDemill::decompress(QString filename)
             Decontainer *c = it->second;
 
             cout << id << " " << c->size << " " << c->data << endl;
-        }
-        break;*/
+        }*/
+        break;
     }
 }
 

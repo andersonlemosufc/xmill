@@ -303,6 +303,5 @@ void StreamParser::compressContainers()
     this->contLengthBuffer = 0;
     this->structureContainer = new Container(ID_CONTAINER_STRUCTURE, TAG_MAP_CONTAINER_STRUCTURE);
     (*containers)[TAG_MAP_CONTAINER_STRUCTURE] = structureContainer;
-
 }
 
