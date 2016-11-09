@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "./compress/xmill.h"
+#include "./decompress/xdemill.h"
 #include <QMainWindow>
 
 namespace Ui {

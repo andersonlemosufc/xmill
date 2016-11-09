@@ -19,7 +19,9 @@ SOURCES += main.cpp\
     compress/xmill.cpp \
     compress/container.cpp \
     util/util.cpp \
-    compress/zlib/easyzlib.c
+    compress/zlib/easyzlib.c \
+    decompress/xdemill.cpp \
+    decompress/decontainer.cpp
 
 HEADERS  += mainwindow.h \
     parser/streamparser.h \
@@ -28,6 +30,8 @@ HEADERS  += mainwindow.h \
     compress/xmill.h \
     compress/container.h \
     util/util.h \
-    compress/zlib/easyzlib.h
+    compress/zlib/easyzlib.h \
+    decompress/xdemill.h \
+    decompress/decontainer.h
 
 FORMS    += mainwindow.ui

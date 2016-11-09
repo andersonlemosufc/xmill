@@ -23,6 +23,7 @@ int Container::addStructureData(int v[], int len)
     int l;
     int res = 0;
     for(int k=0;k<len;k++){
+        //qDebug() << "vetor: " << v[k];
         char *aux = Util::convertIntToChar(v[k], l);
         for(int i=0;i<l;i++) {
             current = current->addData(aux[i]);
@@ -38,12 +39,12 @@ int Container::addStructureData(std::list<int> list)
     int l;
     int res = 0;
     for(std::list<int>::iterator it=list.begin();it!=list.end();++it){
-        char *aux = Util::convertIntToChar(*it, l);
+        //qDebug() << "lista: " << (*it);
+        char *aux = Util::convertIntToChar((*it), l);
         for(int i=0;i<l;i++) {
             current = current->addData(aux[i]);
         }
-        current = current->addData(' ');
-        res += l+1;
+        res += l;
     }
     this->size += res;
     return res;
@@ -72,7 +73,8 @@ int Container::addData(std::string data)
 
 int Container::addData(QStringRef data)
 {
-    return addData(Util::trim(data));
+    std::string s = Util::trim(data);
+    return s.empty() ? 0 : addData(s);
 }
 
 char *Container::getData()

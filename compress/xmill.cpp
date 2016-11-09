@@ -13,7 +13,6 @@ void XMill::compress(QString filename)
     StreamParser *parser = new StreamParser(filename, this->patriciaTags, &containers);
     while(!parser->isEnd()){
         if(!parser->treatNextTag()) return;
-
     }
     /*std::cout << "Patricia: --------------------->\n";
 

@@ -1,6 +1,7 @@
 #ifndef CONTAINER_H
 #define CONTAINER_H
 
+#include <QDebug>
 #include <string>
 #include <list>
 #include "./util/util.h"

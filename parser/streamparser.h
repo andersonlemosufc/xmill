@@ -28,8 +28,8 @@ public:
     ~StreamParser();
     bool treatNextTag();
     bool isEnd();
-    int compress(char *compressed, char *data, long len);
-    int uncompress(char *uncompressed, char *data, long len);
+    int compress(char **compressed, char *data, long len);
+    int uncompress(char **uncompressed, char *data, long len);
 
 private:
     bool end;
