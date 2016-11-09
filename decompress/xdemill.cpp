@@ -31,6 +31,7 @@ void XDemill::decompress(QString filename)
     stack<Tag> tags;
     bool incompleteTag;
     bool incompleteAttributte;
+    bool hasContent;
     ifstream in(filename.toStdString(), ifstream::binary);
     ofstream out(Util::getDecompressedFilename(filename));
     char *buffer = new char[BUFFER_SIZE];
@@ -40,7 +41,7 @@ void XDemill::decompress(QString filename)
     in.read(&first, 1);
     while(!in.eof()){
         map.clear();
-        incompleteTag = incompleteAttributte = false;
+        incompleteTag = incompleteAttributte = hasContent = false;
         int tam = Util::nextInt(first, &in);
         for(int k=0;k<tam;k++){
             int id = Util::nextInt(&in);
@@ -72,6 +73,7 @@ void XDemill::decompress(QString filename)
         while(k<structure->size){
             int t = Util::nextInt(structure->data, &k);
             if(t>0){
+                hasContent = false;
                 char *tagName = map.at(t);
                 Tag tag;
                 tag.name = tagName;
@@ -106,6 +108,7 @@ void XDemill::decompress(QString filename)
                 }
                 tags.push(tag);
             } else if(t<0) {
+                hasContent = true;
                 Decontainer *c = containers.at(-t);
                 int len = BUFFER_SIZE;
                 c->getNextString(&buffer, &len);
@@ -132,9 +135,11 @@ void XDemill::decompress(QString filename)
             } else {
                 Tag tag = tags.top();
                 tags.pop();
-                if(incompleteTag && tag.type!=Tag::ATTRIBUTE){
-                    incompleteTag = false;
-                    out << ">\n";
+                if(hasContent){
+                    if(incompleteTag && tag.type!=Tag::ATTRIBUTE){
+                        incompleteTag = false;
+                        out << ">\n";
+                    }
                 }
                 switch(tag.type){
                     case Tag::ATTRIBUTE: break;
@@ -142,8 +147,13 @@ void XDemill::decompress(QString filename)
                     case Tag::START_DOCUMENT: out << "?>\n"; break;
                     case Tag::COMMENT: out << " -->\n"; break;
                     case Tag::NORMAL:
-                        for(int i=0, tt = tags.size();i<tt;i++) out << "\t";
-                        out << "</" << tag.name << ">\n";
+                        if(hasContent){
+                            for(int i=0, tt = tags.size();i<tt;i++) out << "\t";
+                            out << "</" << tag.name << ">\n";
+                        } else {
+                            incompleteTag = false;
+                            out << " />\n";
+                        }
                         break;
                 }
             }

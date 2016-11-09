@@ -4,7 +4,7 @@
 
 using namespace std;
 
-int comp = 1;
+int comp = 2;
 
 void print(int a){
     cout << a << endl;
@@ -13,7 +13,7 @@ void print(int a){
 int main(int argc, char *argv[])
 {
 
-    int op = 4;
+    int op = 1;
 
 
     QString f1 = "Documentos/tmp/teste-xmill/books.xml";
