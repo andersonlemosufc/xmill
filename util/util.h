@@ -15,6 +15,7 @@ public:
     static std::string getDecompressedFilename(QString filename);
     static void printIntBinaty(int n);
     static int nextInt(std::ifstream* in);
+    static int nextInt(char first, std::ifstream* in);
     static int nextInt(char *ch, int* firstPosition);
     static void binario(char *ch, int n);
 };

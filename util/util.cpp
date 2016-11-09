@@ -77,34 +77,34 @@ void Util::printIntBinaty(int n)
 int Util::nextInt(char *ch, int *firstPosition)
 {
     int res = 0;
-        bool isNegative = false;
-        unsigned char m = 128;
-        int len = 1;
+    bool isNegative = false;
+    unsigned char m = 128;
+    int len = 1;
 
-        int k = *firstPosition;
+    int k = *firstPosition;
+    if(m & ch[k]){
+        m>>=1;
         if(m & ch[k]){
-            m>>=1;
-            if(m & ch[k]){
-                len = 4;
-            } else {
-                len = 2;
-            }
+            len = 4;
+        } else {
+            len = 2;
         }
-        m>>=1;
-        if(m & ch[k]) isNegative = true;
-        m>>=1;
-        int aux = (len==1) ? 32 : (len==2) ? 4096 : 268435456;
-        while(aux>0){
-            if(m==0){
-                m = 128;
-                k++;
-            }
-            if(m & ch[k]) { res += aux;}
-            m>>=1;
-            aux/=2;
+    }
+    m>>=1;
+    if(m & ch[k]) isNegative = true;
+    m>>=1;
+    int aux = (len==1) ? 32 : (len==2) ? 4096 : 268435456;
+    while(aux>0){
+        if(m==0){
+            m = 128;
+            k++;
         }
-        (*firstPosition)=k+1;
-        return (isNegative) ? -(res+1) : res;
+        if(m & ch[k]) { res += aux;}
+        m>>=1;
+        aux/=2;
+    }
+    (*firstPosition)=k+1;
+    return (isNegative) ? -(res+1) : res;
 }
 
 void Util::binario(char *ch, int n)
@@ -124,6 +124,11 @@ int Util::nextInt(ifstream *in)
 {
     char c;
     in->read(&c, 1);
+    return Util::nextInt(c, in);
+}
+
+int Util::nextInt(char c, ifstream *in)
+{
     int res = 0;
     bool isNegative = false;
     unsigned char m = 128;

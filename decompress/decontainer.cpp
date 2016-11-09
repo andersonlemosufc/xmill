@@ -24,7 +24,6 @@ Decontainer::Decontainer(int id, int size, char* data)
 
 void Decontainer::getNextString(char **buffer, int *len)
 {
-    *buffer = new char[*len];
     int k = 0;
     while(position<size){
         char ch = data[position++];

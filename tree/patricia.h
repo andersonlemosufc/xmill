@@ -38,7 +38,7 @@ struct Nodo{
 
     ~Nodo (){
         if(this->isLeaf)
-            delete this->key;
+            delete[] this->key;
         else
             delete this->children;
     }

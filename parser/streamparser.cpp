@@ -26,13 +26,13 @@ StreamParser::StreamParser(QString filename, Patricia<int>* patricia, std::unord
     this->containers = containers;
     this->nextContainerID = ID_CONTAINER_STRUCTURE+1;
     this->nextTagId = TAG_MAP_CONTAINER_STRUCTURE+1;
-    this->contLengthBuffer = 0;
     this->out = new ofstream(Util::getOutputFilename(filename), ofstream::binary);
 }
 
 StreamParser::~StreamParser()
 {
     this->xmlFile->close();
+    out->close();
     delete out;
 }
 
@@ -108,16 +108,44 @@ int StreamParser::uncompress(char **uncompressed, char *data, long len)
 
 void StreamParser::startElement()
 {
-    int id = insertPatricia(xml.name());
+
+
+    int id = 0;
+    if(xml.prefix().isEmpty()){
+        id = insertPatricia(xml.name());
+    } else {
+        QString s = xml.prefix().toString()+":"+xml.name().toString();
+        id = insertPatricia(s.toStdString());
+    }
     tagIds.push(id);
     list<int> aux;
     aux.push_back(id);
+    if(!xml.namespaceDeclarations().isEmpty()) {
+        foreach(QXmlStreamNamespaceDeclaration nd, xml.namespaceDeclarations()){
+            string attr = (nd.prefix().isEmpty()) ? "@xmlns" : "@xmlns:"+(nd.prefix().toString().toStdString());
+            id = insertPatricia(attr);
+            Container *c = getOrInsertContainer(id);
+            int res  = c->addData(nd.namespaceUri());
+            aux.push_back(id);
+            if(res>0){
+                this->contLengthBuffer += res;
+                aux.push_back(-c->id);
+            }
+            aux.push_back(0);
+        }
+    }
+
     foreach(QXmlStreamAttribute a, xml.attributes()){
         string key = "@"+Util::trim(a.name());
         id = insertPatricia(key);
         Container* c = getOrInsertContainer(id);
-        this->contLengthBuffer += c->addData(a.value());
-        aux.push_back(id);aux.push_back(-c->id);aux.push_back(0);
+        int res = c->addData(a.value());
+        aux.push_back(id);
+        if(res>0){
+            this->contLengthBuffer += res;
+            aux.push_back(-c->id);
+        }
+        aux.push_back(0);
     }
     this->contLengthBuffer += structureContainer->addStructureData(aux);
     if(this->contLengthBuffer>SIZE_TO_COMPRESS){
@@ -139,11 +167,14 @@ void StreamParser::characters()
 {
     int id = tagIds.top();
     Container* c = getOrInsertContainer(id);
-    this->contLengthBuffer += c->addData(xml.text());
-    int aux[] = {-c->id};
-    this->contLengthBuffer += structureContainer->addStructureData(aux, 1);
-    if(this->contLengthBuffer>SIZE_TO_COMPRESS){
-        compressContainers();
+    int res = c->addData(xml.text());
+    if(res>0){
+        this->contLengthBuffer += res;
+        int aux[] = {-c->id};
+        this->contLengthBuffer += structureContainer->addStructureData(aux, 1);
+        if(this->contLengthBuffer>SIZE_TO_COMPRESS){
+            compressContainers();
+        }
     }
 }
 
@@ -174,41 +205,62 @@ void StreamParser::dtd()
 void StreamParser::startDocument()
 {
 
+    list<int> l;
+
     int xmlId = this->nextTagId++;
-    int encId = this->nextTagId++;
-    int verId = this->nextTagId++;
-    int stanId = this->nextTagId++;
-
     patricia->insert("?xml", xmlId);
-    patricia->insert("@encoding", encId);
-    patricia->insert("@version", verId);
-    patricia->insert("@standalone", stanId);
-
-
     this->structureContainer = new Container(ID_CONTAINER_STRUCTURE, TAG_MAP_CONTAINER_STRUCTURE);
-    Container *staC = new Container(this->nextContainerID++, stanId);
-    Container *encC = new Container(this->nextContainerID++, encId);
-    Container *verC = new Container(this->nextContainerID++, verId);
     Container *xmlC = new Container(this->nextContainerID++, xmlId);
-
-     
-    staC->addData((this->xml.isStandaloneDocument() ? "true" : "false"));
-    encC->addData(this->xml.documentEncoding());
-    verC->addData(this->xml.documentVersion());
-
-    int aux[] = {xmlId, verId, -verC->id, 0, encId, -encC->id, 0, stanId, -staC->id, 0, 0};
-    structureContainer->addStructureData(aux, 11);
-
     (*containers)[TAG_MAP_CONTAINER_STRUCTURE] = this->structureContainer;
-    (*containers)[stanId] = staC;
-    (*containers)[encId] = encC;
-    (*containers)[verId] = verC;
     (*containers)[xmlId] = xmlC;
 
-    this->contLengthBuffer += this->structureContainer->size + staC->size + verC->size + encC->size + xmlC->size;
+    l.push_back(xmlId);
+
+    QStringRef version = xml.documentVersion();
+    QStringRef enconding = xml.documentEncoding();
+
+    if(!version.isEmpty()){
+         int verId = this->nextTagId++;
+         patricia->insert("@version", verId);
+         Container *verC = new Container(this->nextContainerID++, verId);
+         verC->addData(this->xml.documentVersion());
+         (*containers)[verId] = verC;
+         this->contLengthBuffer += verC->size;
+         l.push_back(verId);
+         l.push_back(-verC->id);
+         l.push_back(0);
+    }
+
+    if(!enconding.isEmpty()){
+        int encId = this->nextTagId++;
+        patricia->insert("@encoding", encId);
+        Container *encC = new Container(this->nextContainerID++, encId);
+        encC->addData(this->xml.documentEncoding());
+        (*containers)[encId] = encC;
+        this->contLengthBuffer += encC->size;
+        l.push_back(encId);
+        l.push_back(-encC->id);
+        l.push_back(0);
+    }
+
+    if(xml.isStandaloneDocument()){
+        int stanId = this->nextTagId++;
+        patricia->insert("@standalone", stanId);
+        Container *staC = new Container(this->nextContainerID++, stanId);
+        (*containers)[stanId] = staC;
+        this->contLengthBuffer += staC->size;
+        l.push_back(stanId);
+        l.push_back(-staC->id);
+        l.push_back(0);
+    }
+    l.push_back(0);
+    structureContainer->addStructureData(l);
+    this->contLengthBuffer += this->structureContainer->size + xmlC->size;
+
     if(this->contLengthBuffer>SIZE_TO_COMPRESS){
         compressContainers();
     }
+
 
 }
 
@@ -217,6 +269,7 @@ void StreamParser::endDocument()
     if(this->contLengthBuffer>0){
         this->compressContainers();
     }
+    out->seekp(0);
     this->end = true;
 }
 
@@ -252,8 +305,9 @@ Container *StreamParser::getOrInsertContainer(int id)
     return c;
 }
 
+
 void StreamParser::compressContainers()
-{
+{ 
     int tAux;
     char *aux = Util::convertIntToChar(patricia->getSize(), tAux);
     out->write(aux, tAux);
@@ -276,21 +330,7 @@ void StreamParser::compressContainers()
         out->write(aux, tAux);
         out->write(compressed, t);
     }
-/*
-    for(Patricia<int>::iterator it = patricia->begin();it!=patricia->end();it++){
-        aux = Util::convertIntToChar(*(+it), tAux);
-        cout << *(+it) << " ";
-        cout << *it << "\n";
-    }
 
-    for(unordered_map<int,Container*>::iterator it = containers->begin(); it != containers->end(); ++it){
-
-        int id = *(&it->first);
-        Container *c = *(&it->second);
-
-        cout << id << " " << c->id << endl;
-    }
-*/
     out->flush();
 
     containers->clear();
@@ -304,4 +344,5 @@ void StreamParser::compressContainers()
     this->structureContainer = new Container(ID_CONTAINER_STRUCTURE, TAG_MAP_CONTAINER_STRUCTURE);
     (*containers)[TAG_MAP_CONTAINER_STRUCTURE] = structureContainer;
 }
+
 

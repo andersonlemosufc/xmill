@@ -20,7 +20,7 @@
 /* Calculate maximum compressed length from uncompressed length */
 #define EZ_COMPRESSMAXDESTLENGTH(n) (n+(((n)/1000)+1)+12)
 
-#define EZ_UNCOMPRESSMAXDESTLENGTH(n) (n*120)
+#define EZ_UNCOMPRESSMAXDESTLENGTH(n) (n*1200)
 
 #ifdef __cplusplus
 extern "C"
