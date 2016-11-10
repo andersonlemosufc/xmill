@@ -19,6 +19,7 @@
 typedef struct {
     char *name;
     int type;
+    bool hasContent;
 
     static const int NORMAL           = 1;
     static const int START_DOCUMENT   = 2;

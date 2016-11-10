@@ -4,7 +4,7 @@
 
 using namespace std;
 
-int comp = 2;
+int comp = 1;
 
 void print(int a){
     cout << a << endl;
@@ -13,14 +13,17 @@ void print(int a){
 int main(int argc, char *argv[])
 {
 
-    int op = 1;
+    int op = 3;
+    int compare = 0;
 
 
-    QString f1 = "Documentos/tmp/teste-xmill/books.xml";
-    QString f2 = "Documentos/tmp/teste-xmill/brasil.svg";
-    QString f3 = "Documentos/tmp/teste-xmill/a.xml";
-    QString f4 = "Documentos/tmp/teste-xmill/sample.xml";
-    QString f5 = "Documentos/tmp/teste-xmill/big-books.xml";
+    QString f1 = "Documentos/tmp/teste-xmill/a.xml";
+    QString f2 = "Documentos/tmp/teste-xmill/books.xml";
+    QString f3 = "Documentos/tmp/teste-xmill/brasil.svg";
+    QString f4 = "Documentos/tmp/teste-xmill/big-books.xml";
+    QString f5 = "Documentos/tmp/teste-xmill/sample.xml";
+    QString f6 = "Documentos/tmp/teste-xmill/teste.xml";
+
 
     QString filename = (comp==1) ? "/home/anderson/" : (comp==2) ? "/home/anderson.silva/" : "";
 
@@ -30,12 +33,15 @@ int main(int argc, char *argv[])
         case 3: filename += f3; break;
         case 4: filename += f4; break;
         case 5: filename += f5; break;
+        case 6: filename += f6; break;
     }
+    if(compare) filename = Util::getWithoutExtension(filename)+".xdemi";
+    qDebug() << filename;
 
     XMill *xmill = new XMill();
     XDemill *demill = new XDemill();
     xmill->compress(filename);
-    demill->decompress(QString::fromStdString(Util::getOutputFilename(filename)));
+    if(!compare) demill->decompress(QString::fromStdString(Util::getOutputFilename(filename)));
     return 0;
     /*QApplication a(argc, argv);
     MainWindow w;

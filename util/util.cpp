@@ -46,22 +46,23 @@ std::string Util::trim(QStringRef s)
     return s.toString().trimmed().toStdString();
 }
 
-string Util::getOutputFilename(QString filename)
+QString Util::getWithoutExtension(QString filename)
 {
     int k = filename.lastIndexOf("/");
     for(int t=filename.length();k<t;k++){
         if(filename[k]=='.') break;
     }
-    return filename.left(k).toStdString()+".xmi";
+    return filename.left(k);
+}
+
+string Util::getOutputFilename(QString filename)
+{
+    return Util::getWithoutExtension(filename).toStdString()+".xmi";
 }
 
 string Util::getDecompressedFilename(QString filename)
 {
-    int k = filename.lastIndexOf("/");
-    for(int t=filename.length();k<t;k++){
-        if(filename[k]=='.') break;
-    }
-    return filename.left(k).toStdString()+".xdemi";
+    return Util::getWithoutExtension(filename).toStdString()+".xdemi";
 }
 
 void Util::printIntBinaty(int n)

@@ -11,6 +11,7 @@ public:
     Util();
     static char* convertIntToChar(int n, int &len); //turn len to the lenght of the return
     static std::string trim(QStringRef s);
+    static QString getWithoutExtension(QString filename);
     static std::string getOutputFilename(QString filename);
     static std::string getDecompressedFilename(QString filename);
     static void printIntBinaty(int n);
