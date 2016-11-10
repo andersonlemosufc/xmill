@@ -27,6 +27,8 @@ StreamParser::StreamParser(QString filename, Patricia<int>* patricia, std::unord
     this->nextContainerID = ID_CONTAINER_STRUCTURE+1;
     this->nextTagId = TAG_MAP_CONTAINER_STRUCTURE+1;
     this->out = new ofstream(Util::getOutputFilename(filename), ofstream::binary);
+
+
 }
 
 StreamParser::~StreamParser()
@@ -165,6 +167,7 @@ void StreamParser::endElement()
 
 void StreamParser::characters()
 {
+    if(xml.isWhitespace()) return;
     int id = tagIds.top();
     Container* c = getOrInsertContainer(id);
     int res = c->addData(xml.text());
@@ -247,6 +250,7 @@ void StreamParser::startDocument()
         int stanId = this->nextTagId++;
         patricia->insert("@standalone", stanId);
         Container *staC = new Container(this->nextContainerID++, stanId);
+        staC->addData("yes");
         (*containers)[stanId] = staC;
         this->contLengthBuffer += staC->size;
         l.push_back(stanId);
@@ -275,6 +279,10 @@ void StreamParser::endDocument()
 
 void StreamParser::invalid()
 {
+    qDebug() << xml.errorString();
+    qDebug() << xml.lineNumber();
+    qDebug() << xml.columnNumber();
+    qDebug() << xml.characterOffset();
     qDebug() << "Token inválido!";
 }
 

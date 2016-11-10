@@ -28,19 +28,19 @@ void XDemill::decompress(QString filename)
 {
 
     std::unordered_map<int,char*> map;
-    stack<Tag> tags;
-    bool incompleteTag;
-    bool incompleteAttributte;
+    stack<Tag*> tags;
+    bool incompleteTag = false;
+    bool incompleteAttributte = false;
     ifstream in(filename.toStdString(), ifstream::binary);
     ofstream out(Util::getDecompressedFilename(filename));
     char *buffer = new char[BUFFER_SIZE];
+
 
     //essa primeira leitura é usada para corrigir o problema do eof
     char first;
     in.read(&first, 1);
     while(!in.eof()){
         map.clear();
-        incompleteTag = incompleteAttributte = false;
         int tam = Util::nextInt(first, &in);
         for(int k=0;k<tam;k++){
             int id = Util::nextInt(&in);
@@ -73,39 +73,43 @@ void XDemill::decompress(QString filename)
             int t = Util::nextInt(structure->data, &k);
             if(t>0){
                 char *tagName = map.at(t);
-                Tag tag;
-                tag.name = tagName;
+                Tag *tag = new Tag();
+                tag->name = tagName;
+                tag->hasContent = false;
                 if(incompleteTag && tagName[0]!='@'){
                     incompleteTag = false;
                     out << ">\n";
+                    tags.top()->hasContent = true;
                 }
                 switch(tagName[0]){
                     case '!':
                         if(tagName[1]=='-') {
-                            tag.type = Tag::COMMENT;
+                            tag->type = Tag::COMMENT;
                             for(int k=0,tt=tags.size();k<tt;k++) out << "\t";
                             out << "<!-- ";
                         } else {
-                            tag.type = Tag::DTD;
+                            tag->type = Tag::DTD;
                         }
                         break;
                     case '?':
-                        tag.type = Tag::START_DOCUMENT;
+                        tag->type = Tag::START_DOCUMENT;
                         out << "<" << tagName;
                         break;
                     case '@':
-                        tag.type = Tag::ATTRIBUTE;
+                        tag->type = Tag::ATTRIBUTE;
                         out << " " << (tagName+1);
                         incompleteAttributte = true;
                         break;
                     default:
-                        tag.type = Tag::NORMAL;
+                        tag->type = Tag::NORMAL;
                         incompleteTag = true;
                         for(int k=0,tt=tags.size();k<tt;k++) out << "\t";
                         out << "<" << tagName;
                 }
                 tags.push(tag);
             } else if(t<0) {
+                Tag *tag = tags.top();
+                tag->hasContent = true;
                 Decontainer *c = containers.at(-t);
                 int len = BUFFER_SIZE;
                 c->getNextString(&buffer, &len);
@@ -120,30 +124,37 @@ void XDemill::decompress(QString filename)
                         out << ">\n";
                     }
                     int tt=tags.size();
-                    Tag tag = tags.top();
-                    if(tag.type!=Tag::COMMENT){
-                        if(tag.type==Tag::DTD) tt--;
+
+                    if(tag->type!=Tag::COMMENT){
+                        if(tag->type==Tag::DTD) tt--;
                         for(int k=0;k<tt;k++) out << "\t";
                     }
 
                     out.write(buffer, len);
-                    if(tag.type==Tag::DTD || tag.type==Tag::NORMAL) out << "\n";
+                    if(tag->type==Tag::DTD || tag->type==Tag::NORMAL) out << "\n";
                 }
             } else {
-                Tag tag = tags.top();
+                Tag *tag = tags.top();
                 tags.pop();
-                if(incompleteTag && tag.type!=Tag::ATTRIBUTE){
-                    incompleteTag = false;
-                    out << ">\n";
+                if(tag->hasContent){
+                    if(incompleteTag && tag->type!=Tag::ATTRIBUTE){
+                        incompleteTag = false;
+                        out << ">\n";
+                    }
                 }
-                switch(tag.type){
+                switch(tag->type){
                     case Tag::ATTRIBUTE: break;
                     case Tag::DTD: break;
                     case Tag::START_DOCUMENT: out << "?>\n"; break;
                     case Tag::COMMENT: out << " -->\n"; break;
                     case Tag::NORMAL:
-                        for(int i=0, tt = tags.size();i<tt;i++) out << "\t";
-                        out << "</" << tag.name << ">\n";
+                        if(tag->hasContent){
+                            for(int i=0, tt = tags.size();i<tt;i++) out << "\t";
+                            out << "</" << (*tag).name << ">\n";
+                        } else {
+                            incompleteTag = false;
+                            out << "/>\n";
+                        }
                         break;
                 }
             }
