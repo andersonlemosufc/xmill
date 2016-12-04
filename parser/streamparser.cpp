@@ -35,6 +35,14 @@ StreamParser::~StreamParser()
 {
     this->xmlFile->close();
     out->close();
+    delete this->xmlFile;
+    /*delete this->patricia;
+    for(unordered_map<int,Container*>::iterator it=containers->begin();
+        it!=containers->end();it++){
+        Container *c = *(&it->second);
+        delete c;
+    }
+    delete structureContainer;*/
     delete out;
 }
 

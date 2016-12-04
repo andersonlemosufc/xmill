@@ -2,9 +2,16 @@
 
 using namespace std;
 
-XDemill::XDemill()
+XDemill::XDemill(QString filename)
 {
+    this->filename = filename;
+}
 
+void XDemill::decompress(QString filename)
+{
+    XDemill *d = new XDemill(filename);
+    d->decompress();
+    delete d;
 }
 
 int XDemill::uncompress(char **uncompressed, char *data, long len)
@@ -15,7 +22,7 @@ int XDemill::uncompress(char **uncompressed, char *data, long len)
                            reinterpret_cast<unsigned char*>(data), len );
     if ( nErr == EZ_BUF_ERROR ) {
         cout << "erro" << endl;
-      delete[] *uncompressed;
+      delete[] (*uncompressed);
       *uncompressed = new char[nDestLen]; // enough room now
       nErr = ezuncompress( reinterpret_cast<unsigned char*>(*uncompressed), &nDestLen,
                            reinterpret_cast<unsigned char*>(data), len );
@@ -24,7 +31,7 @@ int XDemill::uncompress(char **uncompressed, char *data, long len)
 }
 
 
-void XDemill::decompress(QString filename)
+void XDemill::decompress()
 {
 
     std::unordered_map<int,char*> map;
@@ -63,6 +70,8 @@ void XDemill::decompress(QString filename)
             int size = uncompress(&uncompressed, compressed, t);
             Decontainer *c = new Decontainer(id, size, uncompressed);
             containers[id] = c;
+            delete[] compressed;
+
         }
 
         Decontainer *structure = containers.at(ID_CONTAINER_STRUCTURE);
@@ -157,35 +166,24 @@ void XDemill::decompress(QString filename)
                         }
                         break;
                 }
+                delete tag;
             }
         }
         out.flush();
         in.read(&first, 1);
-         //PATRICIA
 
-       /*  for(unordered_map<int,char*>::iterator it = map.begin();
-            it!=map.end();++it){
 
-            int id = *(&it->first);
-            char *c = *(&it->second);
+        delete structure;
+        containers.clear();
 
-            cout << id << " " << c << endl;
-
-        }*/
-/*
-        for(unordered_map<int,Decontainer*>::iterator it=containers.begin();
-            it!=containers.end();++it){
-
-            int id = *(&it->first);
-            Decontainer *c = it->second;
-
-            cout << id << " " << c->size << " " << c->data << endl;
-        }*/
-        //break;
     }
+    delete[] buffer;
+    map.clear();
+
 
     in.close();
     out.close();
+    qDebug() << "decompressed " << filename;
 }
 
 

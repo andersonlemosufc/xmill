@@ -2,18 +2,25 @@
 
 using namespace std;
 
-XMill::XMill()
+XMill::XMill(QString filename)
+{
+    this->filename = filename;
+}
+
+XMill::~XMill()
 {
 
 }
 
-void XMill::compress(QString filename)
+void XMill::compress()
 {
     this->patriciaTags = new Patricia<int>();
     StreamParser *parser = new StreamParser(filename, this->patriciaTags, &containers);
     while(!parser->isEnd()){
         if(!parser->treatNextTag()) return;
     }
+    delete parser;
+    qDebug() << "xmill compressed "<< filename;
     /*std::cout << "Patricia: --------------------->\n";
 
     std::vector<std::string>* keys = patriciaTags->keys();
@@ -37,5 +44,12 @@ void XMill::compress(QString filename)
         }
         std::cout << "\n===================\n";
     }*/
+}
+
+void XMill::compress(QString filename)
+{
+    XMill *x = new XMill(filename);
+    x->compress();
+    delete x;
 }
 

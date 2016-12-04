@@ -32,10 +32,12 @@ typedef struct {
 class XDemill
 {
 public:
-    XDemill();
-    void decompress(QString filename);
+    XDemill(QString filename);
+    static void decompress(QString filename);
+    void decompress();
     int uncompress(char **uncompressed, char *data, long len);
-
+private:
+    QString filename;
 };
 
 #endif // XDEMILL_H
