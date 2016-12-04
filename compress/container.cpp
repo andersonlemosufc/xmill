@@ -8,6 +8,11 @@ Container::Container()
     this->current = firstBlock;
 }
 
+Container::~Container()
+{
+    delete firstBlock;
+}
+
 Container::Container(int id, int pathId)
 {
     this->size = 0;

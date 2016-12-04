@@ -27,6 +27,10 @@ typedef struct block{
         }
         return this;
     }
+    ~block(){
+        if(this->next!=nullptr) delete this->next;
+        delete[] data;
+    }
 } Block;
 
 class Container
@@ -34,6 +38,7 @@ class Container
 public:
 
     Container();
+    ~Container();
     Container(int id, int pathId);
 
     int id;

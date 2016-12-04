@@ -57,12 +57,14 @@ QString Util::getWithoutExtension(QString filename)
 
 string Util::getOutputFilename(QString filename)
 {
-    return Util::getWithoutExtension(filename).toStdString()+".xmi";
+    return Util::getWithoutExtension(filename).replace("/entradas-comparativo/", "/xmi/").toStdString() + ".xmi";
+    //return Util::getWithoutExtension(filename).toStdString()+".xmi";
 }
 
 string Util::getDecompressedFilename(QString filename)
 {
-    return Util::getWithoutExtension(filename).toStdString()+".xdemi";
+    return Util::getWithoutExtension(filename).replace("/xmi/", "/decompressed/").toStdString() + ".xdemi";
+    //return Util::getWithoutExtension(filename).toStdString()+".xdemi";
 }
 
 void Util::printIntBinaty(int n)

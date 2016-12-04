@@ -40,7 +40,7 @@ private:
     std::unordered_map<int,Container*>* containers;
     int nextContainerID;
     int nextTagId;
-    int contLengthBuffer;
+    int contLengthBuffer{0};
     std::stack<int> tagIds;
     Container *structureContainer;
     std::ofstream* out;

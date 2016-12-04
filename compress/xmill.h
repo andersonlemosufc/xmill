@@ -9,13 +9,15 @@
 class XMill
 {
 public:
-    XMill();
-    void compress(QString filename);
+    XMill(QString filename);
+    ~XMill();
+    void compress();
+    static void compress(QString filename);
 
 private:
     Patricia<int>* patriciaTags;
     std::unordered_map<int, Container*> containers;
-
+    QString filename;
 };
 
 #endif // XMILL_H
